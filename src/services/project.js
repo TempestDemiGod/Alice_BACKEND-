@@ -1,5 +1,6 @@
 import { User, Project, Artifact } from '../models/project.model.js';
 import { encryptPassword } from '../utils/bcrypt.js';
+import { generateToken } from '../utils/generar.js';
 
 export const addUser = async (req, res) => {
 	try{
@@ -16,7 +17,15 @@ export const addUser = async (req, res) => {
 		password: encryptedPassword
 })
 await newUser.save()
-	res.status(201).json(newUser)
+console.log(newUser)
+const token = generateToken(newUser)
+console.log(token)
+	res.status(201).cookie('token', token, {
+        maxAge: 3600000 * 2,
+        httpOnly: true,
+        secure: true,
+        sameSite: 'none',
+      }).json(newUser)
 } catch (err) {
 	res.json(err)
 }
@@ -69,18 +78,36 @@ export const addArtifact = async (req, res) => {
 	  res.status(200).json(user.proyects)
 	} catch (err) {
 		res.send(err)
-	//   res.status(500).send(err)
 	}
   }
-
+  export const pathArtifact = async (req, res) => {
+	try {
+	  const datosActualizados = req.body
+	  console.log(datosActualizados.id)
+	  console.log(datosActualizados.respuesta)
+	  const artefacto = await Artifact.findById(datosActualizados.id)
+	  const respuesta = datosActualizados.respuesta
+	  const dato  = {
+		respuesta
+	  }
+	  console.log(dato)
+	Object.assign(artefacto, dato)
+	  await artefacto.save()
+	  console.log(artefacto)
+	  res.status(202).send(artefacto)
+	} catch (err) {
+	  res.send(err)
+	}
+}
   export const getArtifact = async (req, res) => {
-	// try {
-	// 	const id = req.userData.id
-	// 	const project = await User.findById(id).populate('proyects')	
-	//   	res.status(200).json(user.proyects)
-	// } catch (err) {
-	// 	res.send(err)
-	// }
+	try {
+		const id = req.params.primaryCurrency
+		console.log('id -- '+id)
+		const project = await Project.findById(id).populate('artefactos')
+	  	res.status(200).json(project.artefactos)
+	} catch (err) {
+		res.send(err)
+	}
   }
 
   export const getTema = async (req, res) => {
@@ -96,38 +123,21 @@ export const addArtifact = async (req, res) => {
 		res.send(err)
 	}
   }
-//   try {
-// 	const id = req.userData.id
-// 	const user = await User.findById(id).populate('proyects')	
-//   res.status(200).json(user.proyects)
-// } catch (err) {
-// 	res.send(err)
-// }
 
-//   try {
-// 	const { id,nombre,prompt, respuesta} = req.body
-// 	const project = await Project.findById(id)
-// 	const artifact = await new Artifact({
-// 	nombre,
-// 	  prompt,
-// 	respuesta
-// 	})
-// 	project.artefactos.push(artifact)
-// 	await project.save()
-// 	await artifact.save()
-// 	res.status(201).json(project)
-//   } catch (err) {
-// 	res.status(500).send(err)
-//   }
-// -----------------------------------------------------------------
-	// export const getProjec = async (req, res) => {
-	// 	try {
-	// 		const user = await User.findById(req.userData.id).populate({
-	// 			path: 'notes',
-		
-	// 		})
-	// 		res.status(200).json(user.notes)
-	// 	} catch (err) {
-	// 		res.send(err)
-	// 	}
-	// }
+  export const deleteProject = async (req, res) => {
+		try {
+		  const { id } = req.body
+		  console.log('este es el id gente --   '+ id)
+		  console.log('este es el body gente --   '+ req.body.id)
+		  if (!id) {
+			return res.status(400).send('Missing id')
+		  }
+		  await Project.deleteOne({ _id: id })
+		  res.status(202).send()
+		} catch (err) {
+		  res.send(err)
+		}
+  }
+
+  
+  

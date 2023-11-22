@@ -12,6 +12,7 @@ const port = 5000
 
 app.use(express.json())
 app.use(cookieParser())
+// ${url_link}
 app.use(cors({ origin: [`${url_link}`], credentials: true }))
 app.use('/api/v1', projectRouter)
 app.use('/api/v1', authRouter)

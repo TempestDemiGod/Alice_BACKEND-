@@ -28,3 +28,14 @@ export const login = async (req, res) => {
     res.status(500).send({ err })
   }
 }
+
+export const logout = (req, res) => {
+  try {
+    res
+      .clearCookie('token', { sameSite: 'none', secure: true })
+      .status(200)
+      .send('Cookie removed')
+  } catch (err) {
+    res.status(500).send({ err })
+  }
+}
